@@ -37,11 +37,9 @@ url_scheme=
 deep_link=
 admob_app_id=
 snapchat_client_id=
-splash_2436_path=
+splash_logo=
 firebase_config_path=
-splash_960_path=
-splash_2048_path=
-splash_1136_path=
+splash_color=
 prov_profile_path=
 
 [html5_settings]
@@ -53,7 +51,15 @@ output_path=
 FILE_0=main.agc;-1
 
 [files]
-FILE_NAME_0=1;main.agc;102;0
+FILE_NAME_0=1;main.agc;239;0
 
 [watchvariables]
+watch_variable=@Version;
+watch_variable=current_folder$;
+watch_variable=file;
+watch_variable=folder$;
+watch_variable=needs_update;
+watch_variable=subfolder$;
+watch_variable=temp_folder$;
+watch_variable=temp_subfolder$;
 
