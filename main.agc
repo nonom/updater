@@ -1,4 +1,4 @@
-// Project: Game Client Updater 
+// Project: Chilly Willy Updater for AGK
 // Created: 20-03-17
 
 // show all errors
@@ -49,14 +49,14 @@ SetPrintSpacing(0.5)
 #constant TEXT_UPDATE = 1
 #constant TEXT_CHANGELOG = 2
 
-global server$ as string = "download.portalidea.com" //[IDEGUIADD],string,Remote Server
+global server$ as string = "download.domain.com" //[IDEGUIADD],string,Remote Server
 global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
 global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
 global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
 global changelog_file$ as string = "changelog.txt" //[IDEGUIADD],string,Changelog File
 global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable File
 global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
-global info_url$ as string = "https://isleofprayer.org/en/rules" //[IDEGUIADD],string,Info URL
+global info_url$ as string = "https://domain.org/en/rules" //[IDEGUIADD],string,Info URL
 
 global current_state as integer = 0 //[IDEGUIADD],integer,Current State
 global paused as integer = 0 //[IDEGUIADD],integer,Paused
@@ -215,17 +215,6 @@ do
 						endif
 					endcase
 					case TYPE_FILE$
-						needs_update = 1
-						if GetFileExists(file._path$)
-							// TODO
-							// temp_file = OpenToRead(file._path$)
-							// if GetFileSize(temp_file) < file._size$)
-							needs_update = 0
-							// else
-								// needs_update = 0
-							// endif
-							// CloseFile(temp_file)
-						endif
 						if needs_update and GetHTTPStatusCode(http) = 200
 							destination$ = file._path$
 							if destination$ = "L2"
