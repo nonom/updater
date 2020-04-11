@@ -49,6 +49,20 @@ SetPrintSpacing(0.5)
 #constant TEXT_UPDATE = 1
 #constant TEXT_CHANGELOG = 2
 
+
+global config_file$ as string = "config.txt"
+
+http = CreateHTTPConnection()
+SetHTTPHost( http, server$, 0 )
+
+// Exists the remote config file it overrides any local configuration
+
+GetHTTPFile( http, folder$ + config_file$, changelog_file$ )
+while GetHTTPFileComplete(http) = 0
+	custom_config_file = 1
+    Sync()
+endwhile
+
 global server$ as string = "download.portalidea.com" //[IDEGUIADD],string,Remote Server
 global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
 global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
@@ -56,6 +70,8 @@ global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
 global changelog_file$ as string = "changelog.txt" //[IDEGUIADD],string,Changelog File
 global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable File
 global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
+global music$ as string = "outro.mp3" //[IDEGUIADD],selectfile, Music
+global music_volume as integer = 10 //[IDEGUIADD],integer,Music Volume
 global info_url$ as string = "https://isleofprayer.org/en/rules" //[IDEGUIADD],string,Info URL
 
 global current_state as integer = 0 //[IDEGUIADD],integer,Current State
@@ -99,9 +115,10 @@ SetTextColor(TEXT_UPDATE, 0, 0, 0, 255 )
 SetTextPosition(TEXT_UPDATE, 280, 680)
 SetTextSize(TEXT_UPDATE, 18)
 
-http = CreateHTTPConnection()
-SetHTTPHost( http, server$, 0 )
 
+mp3_outro = LoadMusic(music$)
+SetMusicFileVolume(mp3_outro, music_volume)
+PlayMusic (mp3_outro)
 
 GetHTTPFile( http, folder$ + "/changelog.txt", changelog_file$ )
 while GetHTTPFileComplete(http) = 0
@@ -157,7 +174,6 @@ CreateImageColor(IMAGE_COLOR, color.x * 255, color.y * 255, color.z * 255, color
 CreateSprite(SPRITE_UPDATE, IMAGE_COLOR)
 SetSpriteSize(SPRITE_UPDATE, 0, 10)
 
-
 AddVirtualButton ( _STATE_UPDATE, 150, 150, 50 )
 AddVirtualButton ( _STATE_PAUSE, 150, 200, 50 )
 AddVirtualButton ( _STATE_START, 150, 250, 50 )
@@ -178,7 +194,7 @@ SetVirtualButtonColor ( _STATE_INFO, 255, 215, 155 )
 
 SetVirtualButtonVisible ( _STATE_UPDATE, 1 )
 SetVirtualButtonVisible ( _STATE_PAUSE, 0 )
-SetVirtualButtonVisible ( _STATE_START, 0 )
+SetVirtualButtonVisible ( _STATE_START, 1 )
 SetVirtualButtonVisible ( _STATE_END, 1 )
 SetVirtualButtonVisible ( _STATE_INFO, 1 )
 
@@ -197,6 +213,7 @@ do
 	CheckButtons()
 	select current_state
 		case _STATE_UPDATE
+			SetVirtualButtonVisible ( _STATE_START, 0 )
 			if not paused
 				if FileEOF ( sf ) <= 0
 				   	line$ = ReadLine ( sf )
