@@ -1,4 +1,4 @@
-// Project: Game Client Updater 
+// Project: Chilly Willy Updater for AGK2
 // Created: 20-03-17
 
 // show all errors
@@ -49,7 +49,6 @@ SetPrintSpacing(0.5)
 #constant TEXT_UPDATE = 1
 #constant TEXT_CHANGELOG = 2
 
-
 global config_file$ as string = "config.txt"
 
 http = CreateHTTPConnection()
@@ -63,7 +62,7 @@ while GetHTTPFileComplete(http) = 0
     Sync()
 endwhile
 
-global server$ as string = "download.portalidea.com" //[IDEGUIADD],string,Remote Server
+global server$ as string = "download.domain.org" //[IDEGUIADD],string,Remote Server
 global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
 global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
 global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
@@ -72,7 +71,7 @@ global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable Fil
 global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
 global music$ as string = "outro.mp3" //[IDEGUIADD],selectfile, Music
 global music_volume as integer = 10 //[IDEGUIADD],integer,Music Volume
-global info_url$ as string = "https://isleofprayer.org/en/rules" //[IDEGUIADD],string,Info URL
+global info_url$ as string = "http://domain.org/en/rules" //[IDEGUIADD],string,Info URL
 
 global current_state as integer = 0 //[IDEGUIADD],integer,Current State
 global paused as integer = 0 //[IDEGUIADD],integer,Paused
@@ -207,8 +206,6 @@ global add_time as integer = 0
 
 global file as tFile
 
-
-
 do
 	CheckButtons()
 	select current_state
@@ -225,6 +222,7 @@ do
 				else
 					current_state = _STATE_START
 				endif
+				needs_update = 1 // TODO
 				select current_file_type$
 					case TYPE_FOLDER$
 						if not GetFileExists(file._path$)
@@ -232,17 +230,6 @@ do
 						endif
 					endcase
 					case TYPE_FILE$
-						needs_update = 1
-						if GetFileExists(file._path$)
-							// TODO
-							// temp_file = OpenToRead(file._path$)
-							// if GetFileSize(temp_file) < file._size$)
-							needs_update = 0
-							// else
-								// needs_update = 0
-							// endif
-							// CloseFile(temp_file)
-						endif
 						if needs_update and GetHTTPStatusCode(http) = 200
 							destination$ = file._path$
 							if destination$ = "L2"
