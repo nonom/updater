@@ -21,8 +21,8 @@ SetPrintSize ( 18 )
 SetPrintColor(0,0,0)
 SetPrintSpacing(0.5)
 
-//[IDEGUIADD],header,Game Client Updater 
-//[IDEGUIADD],message,Update game client files from a remote server
+//[IDEGUIADD],header,Chilly Willy Updater 
+//[IDEGUIADD],message, Update files from a remote server
 //[IDEGUIADD],separator,
 
 #constant _STATE_STOP = 0
@@ -31,6 +31,7 @@ SetPrintSpacing(0.5)
 #constant _STATE_START = 3
 #constant _STATE_END = 4
 #constant _STATE_INFO = 5
+#constant _STATE_MUSIC = 6
 
 #constant STATE_STOPPED = 0
 #constant STATE_UPDATING = 1
@@ -49,7 +50,9 @@ SetPrintSpacing(0.5)
 #constant TEXT_UPDATE = 1
 #constant TEXT_CHANGELOG = 2
 
-global config_file$ as string = "config.txt"
+#constant CRLF$ = chr(13) + chr(10)
+
+global config_file$ as string = "CONFIG"
 
 http = CreateHTTPConnection()
 SetHTTPHost( http, server$, 0 )
@@ -58,25 +61,28 @@ SetHTTPHost( http, server$, 0 )
 
 GetHTTPFile( http, folder$ + config_file$, changelog_file$ )
 while GetHTTPFileComplete(http) = 0
-	custom_config_file = 1
+	// custom_config_file = 1
     Sync()
 endwhile
 
-global server$ as string = "download.domain.org" //[IDEGUIADD],string,Remote Server
+global server$ as string = "download.portalidea.com" //[IDEGUIADD],string,Remote Server
 global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
 global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
 global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
 global changelog_file$ as string = "changelog.txt" //[IDEGUIADD],string,Changelog File
 global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable File
 global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
+global music_enabled as integer = 1 //[IDEGUIADD],integer, Music enabled
 global music$ as string = "outro.mp3" //[IDEGUIADD],selectfile, Music
 global music_volume as integer = 10 //[IDEGUIADD],integer,Music Volume
-global info_url$ as string = "http://domain.org/en/rules" //[IDEGUIADD],string,Info URL
+global info_url$ as string = "http://isleofprayer.org/en/game-rules" //[IDEGUIADD],string,Info URL
 
 global current_state as integer = 0 //[IDEGUIADD],integer,Current State
 global paused as integer = 0 //[IDEGUIADD],integer,Paused
 
-global current_file_type$ as string = ""
+
+global current_file_type$ as string
+global mp3_outro as integer
 
 type tFile
 	_type$ as string
@@ -92,8 +98,6 @@ type vec4
 	z as float
 	w as float
 endtype
-
-#constant CRLF$ = chr(13) + chr(10)
 
 global spritex = 280 //[IDEGUIADD],integer,X
 global spritey = 700 //[IDEGUIADD],integer,Y
@@ -114,10 +118,9 @@ SetTextColor(TEXT_UPDATE, 0, 0, 0, 255 )
 SetTextPosition(TEXT_UPDATE, 280, 680)
 SetTextSize(TEXT_UPDATE, 18)
 
-
 mp3_outro = LoadMusic(music$)
 SetMusicFileVolume(mp3_outro, music_volume)
-PlayMusic (mp3_outro)
+PlayMusic (mp3_outro, 1)
 
 GetHTTPFile( http, folder$ + "/changelog.txt", changelog_file$ )
 while GetHTTPFileComplete(http) = 0
@@ -178,24 +181,28 @@ AddVirtualButton ( _STATE_PAUSE, 150, 200, 50 )
 AddVirtualButton ( _STATE_START, 150, 250, 50 )
 AddVirtualButton ( _STATE_END, 150, 300, 50 )
 AddVirtualButton ( _STATE_INFO, 150, 350, 50 )
+AddVirtualButton ( _STATE_MUSIC, 150, 400, 50 )
 
 SetVirtualButtonText ( _STATE_UPDATE, "Update" )
 SetVirtualButtonText ( _STATE_PAUSE, "Pause" )
 SetVirtualButtonText ( _STATE_START, "Start" )
 SetVirtualButtonText ( _STATE_END, "End" )
 SetVirtualButtonText ( _STATE_INFO, "Info" )
+SetVirtualButtonText ( _STATE_MUSIC, "Music" )
 
 SetVirtualButtonColor ( _STATE_UPDATE, 255, 155, 255 )
 SetVirtualButtonColor ( _STATE_PAUSE, 155, 255, 155 )
 SetVirtualButtonColor ( _STATE_START, 115, 215, 155 )
 SetVirtualButtonColor ( _STATE_END, 155, 255, 215 )
 SetVirtualButtonColor ( _STATE_INFO, 255, 215, 155 )
+SetVirtualButtonColor ( _STATE_MUSIC, 255, 115, 215 )
 
 SetVirtualButtonVisible ( _STATE_UPDATE, 1 )
 SetVirtualButtonVisible ( _STATE_PAUSE, 0 )
 SetVirtualButtonVisible ( _STATE_START, 1 )
 SetVirtualButtonVisible ( _STATE_END, 1 )
 SetVirtualButtonVisible ( _STATE_INFO, 1 )
+SetVirtualButtonVisible ( _STATE_MUSIC, 1 )
 
 // Updater
 SetSpritePosition(SPRITE_UPDATE, spritex, spritey)
@@ -206,7 +213,8 @@ global add_time as integer = 0
 
 global file as tFile
 
-do
+do	
+	CheckMusic()
 	CheckButtons()
 	select current_state
 		case _STATE_UPDATE
@@ -222,7 +230,7 @@ do
 				else
 					current_state = _STATE_START
 				endif
-				needs_update = 1 // TODO
+				needs_update = 1
 				select current_file_type$
 					case TYPE_FOLDER$
 						if not GetFileExists(file._path$)
@@ -230,6 +238,9 @@ do
 						endif
 					endcase
 					case TYPE_FILE$
+						if GetFileExists(file._path$)
+							needs_update = 0
+						endif
 						if needs_update and GetHTTPStatusCode(http) = 200
 							destination$ = file._path$
 							if destination$ = "L2"
@@ -269,6 +280,15 @@ do
 	Sync()
 loop
 
+function CheckMusic()
+	if music_enabled
+		StopMusic()
+		music_enabled = 0
+	else
+		PlayMusic (mp3_outro, 1)
+		music_enabled = 1
+	endif
+endfunction
 function CheckButtons()
 	if GetVirtualButtonPressed ( _STATE_UPDATE )
 		current_state = _STATE_UPDATE
