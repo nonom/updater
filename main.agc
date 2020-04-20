@@ -30,8 +30,9 @@ SetPrintSpacing(0.5)
 #constant _STATE_PAUSE = 2
 #constant _STATE_START = 3
 #constant _STATE_END = 4
-#constant _STATE_INFO = 5
-#constant _STATE_MUSIC = 6
+
+#constant _EVENT_INFO = 5
+#constant _EVENT_MUSIC = 6
 
 #constant STATE_STOPPED = 0
 #constant STATE_UPDATING = 1
@@ -180,29 +181,33 @@ AddVirtualButton ( _STATE_UPDATE, 150, 150, 50 )
 AddVirtualButton ( _STATE_PAUSE, 150, 200, 50 )
 AddVirtualButton ( _STATE_START, 150, 250, 50 )
 AddVirtualButton ( _STATE_END, 150, 300, 50 )
-AddVirtualButton ( _STATE_INFO, 150, 350, 50 )
-AddVirtualButton ( _STATE_MUSIC, 150, 400, 50 )
+
+AddVirtualButton ( _EVENT_INFO, 150, 350, 50 )
+AddVirtualButton ( _EVENT_MUSIC, 150, 400, 50 )
 
 SetVirtualButtonText ( _STATE_UPDATE, "Update" )
 SetVirtualButtonText ( _STATE_PAUSE, "Pause" )
 SetVirtualButtonText ( _STATE_START, "Start" )
 SetVirtualButtonText ( _STATE_END, "End" )
-SetVirtualButtonText ( _STATE_INFO, "Info" )
-SetVirtualButtonText ( _STATE_MUSIC, "Music" )
+
+SetVirtualButtonText ( _EVENT_INFO, "Info" )
+SetVirtualButtonText ( _EVENT_MUSIC, "Music" )
 
 SetVirtualButtonColor ( _STATE_UPDATE, 255, 155, 255 )
 SetVirtualButtonColor ( _STATE_PAUSE, 155, 255, 155 )
 SetVirtualButtonColor ( _STATE_START, 115, 215, 155 )
 SetVirtualButtonColor ( _STATE_END, 155, 255, 215 )
-SetVirtualButtonColor ( _STATE_INFO, 255, 215, 155 )
-SetVirtualButtonColor ( _STATE_MUSIC, 255, 115, 215 )
+
+SetVirtualButtonColor ( _EVENT_INFO, 255, 215, 155 )
+SetVirtualButtonColor ( _EVENT_MUSIC, 255, 115, 215 )
 
 SetVirtualButtonVisible ( _STATE_UPDATE, 1 )
 SetVirtualButtonVisible ( _STATE_PAUSE, 0 )
 SetVirtualButtonVisible ( _STATE_START, 1 )
 SetVirtualButtonVisible ( _STATE_END, 1 )
-SetVirtualButtonVisible ( _STATE_INFO, 1 )
-SetVirtualButtonVisible ( _STATE_MUSIC, 1 )
+
+SetVirtualButtonVisible ( _EVENT_INFO, 1 )
+SetVirtualButtonVisible ( _EVENT_MUSIC, 1 )
 
 // Updater
 SetSpritePosition(SPRITE_UPDATE, spritex, spritey)
@@ -214,8 +219,8 @@ global add_time as integer = 0
 global file as tFile
 
 do	
-	CheckMusic()
 	CheckButtons()
+	
 	select current_state
 		case _STATE_UPDATE
 			SetVirtualButtonVisible ( _STATE_START, 0 )
@@ -260,6 +265,7 @@ do
 				endselect
 			endif
 		endcase
+		
 		case _STATE_START
 			SetVirtualButtonActive  ( _STATE_UPDATE, 0 )
 			SetVirtualButtonActive  ( _STATE_PAUSE, 0 )
@@ -269,26 +275,20 @@ do
 			SetVirtualButtonVisible  ( _STATE_START, 1 )
 			SetTextString (TEXT_UPDATE, "START")
 		endcase
+		
 		case _STATE_PAUSE
 			SetTextString (TEXT_UPDATE, "PAUSED")
 		endcase
+		
 		case _STATE_END
 			Exit
 		endcase
+		
 	endselect
 	 
 	Sync()
 loop
 
-function CheckMusic()
-	if music_enabled
-		StopMusic()
-		music_enabled = 0
-	else
-		PlayMusic (mp3_outro, 1)
-		music_enabled = 1
-	endif
-endfunction
 function CheckButtons()
 	if GetVirtualButtonPressed ( _STATE_UPDATE )
 		current_state = _STATE_UPDATE
@@ -316,8 +316,18 @@ function CheckButtons()
 		current_state = _STATE_END
 	endif
 	
-	if GetVirtualButtonPressed( _STATE_INFO )
+	if GetVirtualButtonPressed( _EVENT_INFO )
 		OpenBrowser ( info_url$ )
+	endif
+	
+	if GetVirtualButtonPressed( _EVENT_MUSIC )
+		if music_enabled
+			StopMusic()
+			music_enabled = 0
+		else
+			PlayMusic (mp3_outro, 1)
+			music_enabled = 1
+		endif
 	endif
 endfunction
 
