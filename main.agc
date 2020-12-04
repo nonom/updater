@@ -5,7 +5,7 @@
 SetErrorMode(2)
 
 // set window properties
-SetWindowTitle( "Updater" )
+SetWindowTitle( "Chilly Willy Updater" )
 SetWindowSize( 1024, 768, 0 )
 SetWindowAllowResize( 0 ) // allow the user to resize the window
 SetClearColor(255, 255, 255)
@@ -24,6 +24,8 @@ SetPrintSpacing(0.5)
 //[IDEGUIADD],header,Chilly Willy Updater 
 //[IDEGUIADD],message, Update files from a remote server
 //[IDEGUIADD],separator,
+
+//#import_plugin FileExplore
 
 #constant _STATE_STOP = 0
 #constant _STATE_UPDATE = 1
@@ -53,38 +55,6 @@ SetPrintSpacing(0.5)
 
 #constant CRLF$ = chr(13) + chr(10)
 
-global config_file$ as string = "CONFIG"
-
-http = CreateHTTPConnection()
-SetHTTPHost( http, server$, 0 )
-
-// Exists the remote config file it overrides any local configuration
-
-GetHTTPFile( http, folder$ + config_file$, changelog_file$ )
-while GetHTTPFileComplete(http) = 0
-	// custom_config_file = 1
-    Sync()
-endwhile
-
-global server$ as string = "download.portalidea.com" //[IDEGUIADD],string,Remote Server
-global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
-global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
-global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
-global changelog_file$ as string = "changelog.txt" //[IDEGUIADD],string,Changelog File
-global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable File
-global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
-global music_enabled as integer = 1 //[IDEGUIADD],integer, Music enabled
-global music$ as string = "outro.mp3" //[IDEGUIADD],selectfile, Music
-global music_volume as integer = 10 //[IDEGUIADD],integer,Music Volume
-global info_url$ as string = "http://isleofprayer.org/en/game-rules" //[IDEGUIADD],string,Info URL
-
-global current_state as integer = 0 //[IDEGUIADD],integer,Current State
-global paused as integer = 0 //[IDEGUIADD],integer,Paused
-
-
-global current_file_type$ as string
-global mp3_outro as integer
-
 type tFile
 	_type$ as string
 	_status$ as string
@@ -100,12 +70,48 @@ type vec4
 	w as float
 endtype
 
-global spritex = 280 //[IDEGUIADD],integer,X
-global spritey = 700 //[IDEGUIADD],integer,Y
-global sprite_width = 20 //[IDEGUIADD],integer,Width
-global sprite_height = 20 //[IDEGUIADD],integer,Height
-global scale# = 1 //[IDEGUIADD],float,Scale
-global image$ = "background.jpg" //[IDEGUIADD],selectfile,Background
+type tConfig
+	server as string
+	background as string 
+	remote_port as integer
+	remote_folder as string
+	remote_subfolder as string
+	status_file as string 
+	changelog_file as string
+	music as string
+	music_volume as integer
+	info_url as string
+	version_file as string
+    executable_file as string
+endtype
+
+global server$ as string 
+global port$ as integer 
+global folder$ as string 
+global subfolder$ as string
+global status_file$ as string 
+global changelog_file$ as string 
+
+global music$ as string 
+global music_volume as integer 
+global info_url$ as string 
+
+global config_file$ as string 
+global version_file$ as string 
+global executable_file$ as string 
+global current_file_type$ as string
+global mp3_outro as integer
+
+global current_state as integer = 0 //[IDEGUIADD],integer,Current State
+global paused as integer = 0 //[IDEGUIADD],integer,Paused
+
+global music_enabled as integer = 31 //[IDEGUIADD],integer, Music enabled
+global spritex as integer = 280 //[IDEGUIADD],integer,X
+global spritey as integer = 700 //[IDEGUIADD],integer,Y
+global sprite_width as integer = 20 //[IDEGUIADD],integer,Width
+global sprite_height as integer = 20 //[IDEGUIADD],integer,Height
+global scale# as integer = 1 //[IDEGUIADD],float,Scale
+global image$ as string 
 
 global color as vec4 //[IDEGUIADD],vec4color,Color
 
@@ -113,6 +119,43 @@ color.x = 1.000000 //[IDEGUIADD],variable,Color
 color.y = 0.957365 //[IDEGUIADD],variable,Color
 color.z = 0.000000 //[IDEGUIADD],variable,Color
 color.w = 1.000000 //[IDEGUIADD],variable,Color
+
+global config as tConfig
+
+global json$ as string
+json$ = Updater_JSON_Load("config.json")
+config.fromJson(json$)
+
+server$ = config.server
+port = config.remote_port 
+folder$ = config.remote_folder 
+subfolder$ = config.remote_subfolder 
+status_file$ = config.status_file
+changelog_file$ = config.changelog_file 
+music$ = config.music 
+music_volume = config.music_volume 
+info_url$ = config.info_url 
+version_file$ = config.version_file 
+executable_file$ = config.executable_file
+image$ = config.background
+
+http = CreateHTTPConnection()
+SetHTTPHost( http, server$, 0 )
+
+//~szPath as string
+
+//~szPath = "raw:c:\line"
+//~MakeFolder(szPath) 
+
+// OpenToWrite( 1 , "raw:c:\temp\myFile.txt" )
+
+// Exists the remote config file it overrides any local configuration
+
+GetHTTPFile( http, folder$ + config_file$, changelog_file$ )
+while GetHTTPFileComplete(http) = 0
+	// custom_config_file = 1
+    Sync()
+endwhile
 
 CreateText(TEXT_UPDATE, "")
 SetTextColor(TEXT_UPDATE, 0, 0, 0, 255 )
@@ -181,7 +224,7 @@ AddVirtualButton ( _STATE_UPDATE, 150, 150, 50 )
 AddVirtualButton ( _STATE_PAUSE, 150, 200, 50 )
 AddVirtualButton ( _STATE_START, 150, 250, 50 )
 AddVirtualButton ( _STATE_END, 150, 300, 50 )
-
+AddVirtualButton ( 99 , 300, 300, 50 )
 AddVirtualButton ( _EVENT_INFO, 150, 350, 50 )
 AddVirtualButton ( _EVENT_MUSIC, 150, 400, 50 )
 
@@ -217,10 +260,17 @@ global total_time as integer = 0
 global add_time as integer = 0
 
 global file as tFile
+global fold$ as string
+
+//~if(GetFileExists('CONFIG'))
+//	config.fromJSON('CONFIG');
+//~endif
+
+//Validation server
 
 do	
 	CheckButtons()
-	
+
 	select current_state
 		case _STATE_UPDATE
 			SetVirtualButtonVisible ( _STATE_START, 0 )
@@ -290,6 +340,12 @@ do
 loop
 
 function CheckButtons()
+	
+//~	if GetVirtualButtonPressed ( 99 )
+//~		fold$ = FileExplore.ChooseFolderDialog("Title", "")
+//~	endif
+
+	Print(fold$)
 	if GetVirtualButtonPressed ( _STATE_UPDATE )
 		current_state = _STATE_UPDATE
 		SetVirtualButtonAlpha   ( _STATE_UPDATE, 5 )
@@ -334,3 +390,24 @@ endfunction
 CloseHTTPConnection  ( http )
 DeleteHTTPConnection ( http )
 CloseFile ( sf )
+
+
+/*
+ * Load a JSON file
+ */
+function Updater_JSON_Load(filename$)
+	JSON$ as string = ""
+	memBlock as integer
+	memBlock = CreateMemblockFromFile(filename$)
+	JSON$ = GetMemblockString(Memblock, 0, GetMemblockSize(memBlock))
+	DeleteMemblock(memBlock)
+endfunction JSON$
+
+/*
+ * Save a string into a JSON file
+ */
+function Updater_JSON_Save(string$, filename$)
+    OpenToWrite(1,filename$,0) 
+    WriteString(1,string$)
+    CloseFile(1)
+endfunction
