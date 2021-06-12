@@ -1,8 +1,10 @@
-Configure your own installer instance.
+# Configure your own installer instance.
 
-Rename config.json_example
+Rename config.json_example file.
+
 Fill all the default values:
 
+```
 {
     "server": "domain.com", 
     "background": "background.jpg", 
@@ -19,5 +21,6 @@ Fill all the default values:
     "installer_dir": "C:\\Game",
     "installer_name": "Chilly Willy updater"
 }
+```
 
 Save and update!
