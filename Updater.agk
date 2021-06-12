@@ -51,15 +51,18 @@ output_path=
 FILE_0=main.agc;-1
 
 [files]
-FILE_NAME_0=1;main.agc;136;0
+FILE_NAME_0=1;main.agc;6;0
 
 [watchvariables]
 watch_variable=@Version;
-watch_variable=current_folder$;
-watch_variable=file;
+watch_variable=changelog_file$;
 watch_variable=folder$;
-watch_variable=needs_update;
-watch_variable=subfolder$;
-watch_variable=temp_folder$;
-watch_variable=temp_subfolder$;
+watch_variable=info_url$;
+watch_variable=installer_dir$;
+watch_variable=installer_name$;
+watch_variable=music$;
+watch_variable=music_volume;
+watch_variable=port$;
+watch_variable=server$;
+watch_variable=status_file$;
 

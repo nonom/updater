@@ -1,0 +1,23 @@
+Configure your own installer instance.
+
+Rename config.json_example
+Fill all the default values:
+
+{
+    "server": "domain.com", 
+    "background": "background.jpg", 
+    "remote_port": 80, 
+    "remote_folder": "downloads", 
+    "remote_subfolder": "Install", 
+    "status_file": "status.txt", 
+    "changelog_file": "changelog.txt", 
+    "music": "outro.mp3", 
+    "music_volume": 10, 
+    "info_url": "http://www.domain.com/en/info", 
+    "version_file": "VERSION", 
+    "executable_file": "Start.bat",
+    "installer_dir": "C:\\Game",
+    "installer_name": "Chilly Willy updater"
+}
+
+Save and update!

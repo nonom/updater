@@ -5,7 +5,6 @@
 SetErrorMode(2)
 
 // set window properties
-SetWindowTitle( "Chilly Willy Updater" )
 SetWindowSize( 1024, 768, 0 )
 SetWindowAllowResize( 0 ) // allow the user to resize the window
 SetClearColor(255, 255, 255)
@@ -81,24 +80,30 @@ type tConfig
 	music as string
 	music_volume as integer
 	info_url as string
+	installer_dir as string
+	installer_name as string
 	version_file as string
     executable_file as string
+    game_ip as string
 endtype
 
-global server$ as string 
-global port$ as integer 
-global folder$ as string 
-global subfolder$ as string
-global status_file$ as string 
-global changelog_file$ as string 
+global server$ as string = "subdomain.domain.com" //[IDEGUIADD],string,Remote Server
+global port$ as integer = 80 //[IDEGUIADD],integer,Port
+global folder$ as string = "downloads" //[IDEGUIADD],string,Remote Folder
+global subfolder$ as string = "Install" //[IDEGUIADD],string,Remote Subfolder
+global status_file$ as string = "status.txt" //[IDEGUIADD],string,Status File
+global changelog_file$ as string = "changelog.txt" //[IDEGUIADD],string,Changelog File
+global music_volume as integer = 10 //[IDEGUIADD],integer,Music Volume
+global game_ip$ as string = "719.37.29.28" //[IDEGUIADD],string,Gameserver IP
 
-global music$ as string 
-global music_volume as integer 
-global info_url$ as string 
+global music$ as string = "outro.mp3" //[IDEGUIADD],selectfile, Music
+global info_url$ as string = "http://www.domain.com/" //[IDEGUIADD],string,Info URL
+global installer_dir$ as string = "C:\GameDirectory" //[IDEGUIADD],string, Installer dir
+global installer_name$ as string = "Chilly Willy Updater" //[IDEGUIADD],string, Installer name
 
 global config_file$ as string 
-global version_file$ as string 
-global executable_file$ as string 
+global version_file$ as string = "VERSION" //[IDEGUIADD],string,Version File
+global executable_file$ as string = "L2.bat" //[IDEGUIADD],string,Executable File
 global current_file_type$ as string
 global mp3_outro as integer
 
@@ -111,7 +116,7 @@ global spritey as integer = 700 //[IDEGUIADD],integer,Y
 global sprite_width as integer = 20 //[IDEGUIADD],integer,Width
 global sprite_height as integer = 20 //[IDEGUIADD],integer,Height
 global scale# as integer = 1 //[IDEGUIADD],float,Scale
-global image$ as string 
+global image$ as string  = "background.jpg" //[IDEGUIADD],string,Image
 
 global color as vec4 //[IDEGUIADD],vec4color,Color
 
@@ -123,39 +128,49 @@ color.w = 1.000000 //[IDEGUIADD],variable,Color
 global config as tConfig
 
 global json$ as string
-json$ = Updater_JSON_Load("config.json")
-config.fromJson(json$)
 
-server$ = config.server
-port = config.remote_port 
-folder$ = config.remote_folder 
-subfolder$ = config.remote_subfolder 
-status_file$ = config.status_file
-changelog_file$ = config.changelog_file 
-music$ = config.music 
-music_volume = config.music_volume 
-info_url$ = config.info_url 
-version_file$ = config.version_file 
-executable_file$ = config.executable_file
-image$ = config.background
+global szPath as string
+
+szPath = "raw:" + installer_dir$
+
+MakeFolder(szPath)
+
+szPath = szPath + "/"
+
+if GetFileExists('config.json')
+	json$ = Updater_JSON_Load("config.json")
+	config.fromJson(json$)
+	server$ = config.server
+	port = config.remote_port 
+	folder$ = config.remote_folder 
+	subfolder$ = config.remote_subfolder 
+	status_file$ = config.status_file
+	changelog_file$ = config.changelog_file 
+	music$ = config.music 
+	music_volume = config.music_volume
+	installer_dir$ = config.installer_dir
+	installer_name$ = config.installer_name
+	info_url$ = config.info_url 
+	version_file$ = config.version_file 
+	executable_file$ = config.executable_file
+	image$ = config.background
+	game_ip$ = config.game_ip
+endif
+
+SetWindowTitle(installer_name$)
 
 http = CreateHTTPConnection()
 SetHTTPHost( http, server$, 0 )
 
-//~szPath as string
 
-//~szPath = "raw:c:\line"
-//~MakeFolder(szPath) 
-
-// OpenToWrite( 1 , "raw:c:\temp\myFile.txt" )
-
-// Exists the remote config file it overrides any local configuration
-
-GetHTTPFile( http, folder$ + config_file$, changelog_file$ )
+GetHTTPFile( http, folder$ + "/"+changelog_file$, szPath + changelog_file$ )
 while GetHTTPFileComplete(http) = 0
 	// custom_config_file = 1
     Sync()
 endwhile
+
+cf = OpenToRead ( szPath + changelog_file$ )
+
 
 CreateText(TEXT_UPDATE, "")
 SetTextColor(TEXT_UPDATE, 0, 0, 0, 255 )
@@ -166,12 +181,12 @@ mp3_outro = LoadMusic(music$)
 SetMusicFileVolume(mp3_outro, music_volume)
 PlayMusic (mp3_outro, 1)
 
-GetHTTPFile( http, folder$ + "/changelog.txt", changelog_file$ )
+GetHTTPFile( http, folder$ + "/changelog.txt", szPath + changelog_file$ )
 while GetHTTPFileComplete(http) = 0
     Sync()
 endwhile
 
-cf = OpenToRead ( changelog_file$ )
+cf = OpenToRead ( szPath + changelog_file$ )
 
 global temp_text$ as string = ""
 
@@ -194,22 +209,22 @@ SetEditBoxSize(TEXT_CHANGELOG, 200, 200)
 SetEditBoxActive(TEXT_CHANGELOG, 0)
 CloseFile ( cf )
 
-GetHTTPFile( http, folder$ + "/version.txt", version_file$ )
+GetHTTPFile( http, folder$ + "/version.txt", szPath + version_file$ )
 while GetHTTPFileComplete(http) = 0
     Sync()
 endwhile
 
-GetHTTPFile( http, folder$ + "/l2.txt", executable_file$ )
+GetHTTPFile( http, folder$ + "/l2.txt", szPath + executable_file$ )
 while GetHTTPFileComplete(http) = 0
     Sync()
 endwhile
 
-GetHTTPFile( http, folder$ + "/" + status_file$, status_file$ )
+GetHTTPFile( http, folder$ + "/" + status_file$, szPath + status_file$ )
 while GetHTTPFileComplete(http) = 0
     Sync()
 endwhile
 
-sf = OpenToRead ( status_file$ )
+sf = OpenToRead ( szPath + status_file$ )
 
 LoadImage(SPRITE_BACKGROUND, image$)
 CreateSprite(IMAGE_BACKGROUND, SPRITE_BACKGROUND)
@@ -252,7 +267,7 @@ SetVirtualButtonVisible ( _STATE_END, 1 )
 SetVirtualButtonVisible ( _EVENT_INFO, 1 )
 SetVirtualButtonVisible ( _EVENT_MUSIC, 1 )
 
-// Updater
+// Update percent sprites
 SetSpritePosition(SPRITE_UPDATE, spritex, spritey)
 SetSpriteScale(SPRITE_UPDATE, scale#, scale#)
 
@@ -261,18 +276,19 @@ global add_time as integer = 0
 
 global file as tFile
 global fold$ as string
-
-//~if(GetFileExists('CONFIG'))
-//	config.fromJSON('CONFIG');
-//~endif
-
-//Validation server
+global write_batch_file as integer = 1
 
 do	
 	CheckButtons()
 
 	select current_state
 		case _STATE_UPDATE
+			if write_batch_file
+				local bat$ as string
+				bat$  = "@echo off" + chr(10) + "SET mypath=%~dp0" + "SET mypath=%~dp0" + chr(10) +"start %mypath:~0,-1%\system\L2.exe IP=" + game_ip$ + chr(10)
+				Updater_SaveToFile("L2.bat",bat$)
+				write_batch_file = 0
+			endif
 			SetVirtualButtonVisible ( _STATE_START, 0 )
 			if not paused
 				if FileEOF ( sf ) <= 0
@@ -288,16 +304,16 @@ do
 				needs_update = 1
 				select current_file_type$
 					case TYPE_FOLDER$
-						if not GetFileExists(file._path$)
-							MakeFolder ( file._path$ )
+						if not GetFileExists(szPath + file._path$)
+							MakeFolder ( szPath + file._path$ )
 						endif
 					endcase
 					case TYPE_FILE$
-						if GetFileExists(file._path$)
+						if GetFileExists(szPath + file._path$)
 							needs_update = 0
 						endif
 						if needs_update and GetHTTPStatusCode(http) = 200
-							destination$ = file._path$
+							destination$ = szPath + file._path$
 							if destination$ = "L2"
 								destination$ = destination$ + ".bat"
 							endif
@@ -339,11 +355,21 @@ do
 	Sync()
 loop
 
+CloseHTTPConnection  ( http )
+DeleteHTTPConnection ( http )
+CloseFile ( sf )
+
+
+/** 
+ * Just a helper
+ * to check the buttons states
+ */
 function CheckButtons()
 	
-//~	if GetVirtualButtonPressed ( 99 )
-//~		fold$ = FileExplore.ChooseFolderDialog("Title", "")
-//~	endif
+	// Fi you want to use the FileExplore plugin add this.
+	//~	if GetVirtualButtonPressed ( 99 )
+	//~		fold$ = FileExplore.ChooseFolderDialog("Title", "C:\")
+	//~	endif
 
 	Print(fold$)
 	if GetVirtualButtonPressed ( _STATE_UPDATE )
@@ -387,10 +413,6 @@ function CheckButtons()
 	endif
 endfunction
 
-CloseHTTPConnection  ( http )
-DeleteHTTPConnection ( http )
-CloseFile ( sf )
-
 
 /*
  * Load a JSON file
@@ -406,8 +428,21 @@ endfunction JSON$
 /*
  * Save a string into a JSON file
  */
+function Updater_SaveToFile(file$ as string, m$ as string)
+	fileID = OpenToWrite(szPath + file$, 0)
+    if FileIsOpen(FileID)
+        WriteString(fileID, m$)
+        CloseFile(fileID)
+    endIf
+endFunction
+
+/*
+ * Save a string into a JSON file
+ */
 function Updater_JSON_Save(string$, filename$)
-    OpenToWrite(1,filename$,0) 
-    WriteString(1,string$)
-    CloseFile(1)
+	if GetFileExists(szPath + filename$)
+   	 	OpenToWrite(1,filename$,0) 
+    	WriteString(1,string$)
+    	CloseFile(1)
+    endif
 endfunction
